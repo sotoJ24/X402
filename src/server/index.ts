@@ -6,6 +6,7 @@ import { serve } from '@hono/node-server'
 import searchMppRoute from './routes/search.js'
 import searchX402Route from './routes/search-x402.js'
 import financeRoute from './routes/finance.js'
+import dashboardRoute from './routes/dashboard.js'
 import { getTransactions, getStats } from './store.js'
 import { network } from './mpp.js'
 
@@ -20,6 +21,9 @@ app.route('/finance', financeRoute)
 
 // ── x402-gated routes (same services, different protocol) ─────────────────────
 app.route('/x402/search', searchX402Route)
+
+// ── Dashboard ─────────────────────────────────────────────────────────────────
+app.route('/dashboard', dashboardRoute)
 
 // ── Public info ───────────────────────────────────────────────────────────────
 app.get('/', (c) =>
@@ -64,5 +68,6 @@ serve({ fetch: app.fetch, port }, () => {
   console.log(`  x402 /x402/search?q=<query>           0.01 USDC`)
   console.log(``)
   console.log(`  GET  /transactions  →  live tx feed`)
-  console.log(`  GET  /stats         →  usage stats\n`)
+  console.log(`  GET  /stats         →  usage stats`)
+  console.log(`  GET  /dashboard     →  live UI\n`)
 })
