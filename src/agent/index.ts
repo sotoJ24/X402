@@ -9,8 +9,8 @@ Mppx.create({
 
 // const anthropic = new Anthropic()
 const BASE_URL = process.env.SERVER_URL || 'http://localhost:3000'
-const GROQ_API_KEY = process.env.GROQ_API_KEY!
-const GROQ_MODEL = 'llama-3.1-8b-instant'
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY!
+const GEMINI_MODEL = 'gemini-2.0-flash'
 
 const BUDGET_USDC = parseFloat(process.argv[3] ?? process.env.AGENT_BUDGET ?? '0.10')
 let totalSpent = 0
@@ -53,13 +53,13 @@ async function callTool(name: string, input: Record<string, string>): Promise<un
   throw new Error(`Unknown tool: ${name}`)
 }
 
-async function groqChat(messages: any[]): Promise<any> {
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+async function geminiChat(messages: any[]): Promise<any> {
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GROQ_API_KEY}` },
-    body: JSON.stringify({ model: GROQ_MODEL, max_tokens: 4096, tools, tool_choice: 'auto', messages }),
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${GEMINI_API_KEY}` },
+    body: JSON.stringify({ model: GEMINI_MODEL, max_tokens: 4096, tools, tool_choice: 'auto', messages }),
   })
-  if (!res.ok) throw new Error(`Groq error: ${res.status} ${await res.text()}`)
+  if (!res.ok) throw new Error(`Gemini error: ${res.status} ${await res.text()}`)
   return res.json()
 }
 
@@ -71,7 +71,7 @@ async function runAgent(question: string) {
   const messages: any[] = [{ role: 'user', content: question }]
 
   while (true) {
-    const response = await groqChat(messages)
+    const response = await geminiChat(messages)
     const choice = response.choices[0]
     const msg = choice.message
     messages.push(msg)

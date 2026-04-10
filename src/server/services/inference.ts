@@ -7,7 +7,7 @@ export interface InferenceResult {
     completion_tokens: number
     total_tokens: number
   }
-  source: 'groq' | 'mock'
+  source: 'gemini' | 'mock'
   timestamp: string
 }
 
@@ -15,19 +15,19 @@ export async function runInference(
   prompt: string,
   model?: string,
 ): Promise<InferenceResult> {
-  if (process.env.GROQ_API_KEY) {
-    return runGroq(prompt, model)
+  if (process.env.GEMINI_API_KEY) {
+    return runGemini(prompt, model)
   }
   return runMock(prompt, model)
 }
 
-async function runGroq(prompt: string, model?: string): Promise<InferenceResult> {
-  const selectedModel = model ?? 'llama-3.1-8b-instant'
-  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+async function runGemini(prompt: string, model?: string): Promise<InferenceResult> {
+  const selectedModel = model ?? 'gemini-2.0-flash'
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+      Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
     },
     body: JSON.stringify({
       model: selectedModel,
@@ -38,7 +38,7 @@ async function runGroq(prompt: string, model?: string): Promise<InferenceResult>
 
   if (!res.ok) {
     const err = await res.text()
-    throw new Error(`Groq API error ${res.status}: ${err}`)
+    throw new Error(`Gemini API error ${res.status}: ${err}`)
   }
 
   const data = (await res.json()) as any
@@ -53,17 +53,17 @@ async function runGroq(prompt: string, model?: string): Promise<InferenceResult>
       completion_tokens: data.usage?.completion_tokens ?? 0,
       total_tokens: data.usage?.total_tokens ?? 0,
     },
-    source: 'groq',
+    source: 'gemini',
     timestamp: new Date().toISOString(),
   }
 }
 
-// Graceful fallback when GROQ_API_KEY is not set
+// Graceful fallback when GEMINI_API_KEY is not set
 function runMock(prompt: string, model?: string): InferenceResult {
   return {
-    model: model ?? 'llama-3.1-8b-instant',
+    model: model ?? 'gemini-2.0-flash',
     prompt,
-    text: '[GROQ_API_KEY not configured — set it in .env to enable real inference]',
+    text: '[GEMINI_API_KEY not configured — set it in .env to enable real inference]',
     usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
     source: 'mock',
     timestamp: new Date().toISOString(),
