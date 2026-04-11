@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Leva } from 'leva'
 import { GL } from '../components/gl/index.js'
 import { Logo } from '../components/logo.js'
@@ -40,13 +40,35 @@ function getInitialPage(): Page {
 
 function WalletWidget() {
   const wallet = useWallet()
+  const [copied, setCopied] = useState(false)
 
   const statusLabel: Record<string, string> = {
     idle:       'Initializing…',
     generating: 'Generating wallet…',
-    funding:    'Funding via Friendbot…',
+    funding:    'Funding XLM via Friendbot…',
+    trustline:  'Adding USDC trustline…',
+    swapping:   'Swapping XLM → USDC on Stellar DEX…',
     ready:      '',
     error:      'Wallet error',
+  }
+
+  // Auto-poll the dashboard wallet balance every 5s so users see deductions
+  // without manually clicking refresh.
+  useEffect(() => {
+    if (wallet.status !== 'ready') return
+    const id = setInterval(() => { wallet.refresh() }, 5000)
+    return () => clearInterval(id)
+  }, [wallet.status, wallet.refresh])
+
+  async function handleCopy() {
+    if (!wallet.publicKey) return
+    try {
+      await navigator.clipboard.writeText(wallet.publicKey)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {
+      // ignore
+    }
   }
 
   return (
@@ -72,16 +94,46 @@ function WalletWidget() {
         <div style={{ fontSize: 11, color: 'var(--red)' }}>{wallet.error}</div>
       ) : (
         <>
+          {/* Public key + copy button */}
           <div style={{
-            fontFamily: 'var(--mono)',
-            fontSize: 10,
-            color: 'var(--muted-light)',
-            marginBottom: 6,
-            wordBreak: 'break-all',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            marginBottom: 8,
           }}>
-            {wallet.publicKey
-              ? `${wallet.publicKey.slice(0, 6)}…${wallet.publicKey.slice(-4)}`
-              : '—'}
+            <code
+              title={wallet.publicKey ?? ''}
+              style={{
+                fontFamily: 'var(--mono)',
+                fontSize: 10,
+                color: 'var(--muted-light)',
+                flex: 1,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              {wallet.publicKey
+                ? `${wallet.publicKey.slice(0, 6)}…${wallet.publicKey.slice(-6)}`
+                : '—'}
+            </code>
+            <button
+              onClick={handleCopy}
+              title="Copy full public key"
+              style={{
+                background: 'none',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-sm)',
+                color: copied ? 'var(--green)' : 'var(--muted)',
+                fontFamily: 'var(--mono)',
+                fontSize: 9,
+                cursor: 'pointer',
+                padding: '2px 6px',
+                transition: 'color 0.15s',
+              }}
+            >
+              {copied ? '✓ copied' : '⧉ copy'}
+            </button>
           </div>
 
           <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
@@ -107,39 +159,44 @@ function WalletWidget() {
             </span>
           </div>
 
-          {(!wallet.usdcBalance || parseFloat(wallet.usdcBalance) === 0) && (
-            <div style={{
-              fontSize: 10,
-              color: 'var(--muted)',
-              lineHeight: 1.5,
-              marginBottom: 6,
-            }}>
-              Fund with USDC to enable payments. Or run{' '}
-              <code style={{ fontFamily: 'var(--mono)', color: 'var(--accent)' }}>
-                npm run agent
-              </code>{' '}
-              to use the server wallet.
-            </div>
-          )}
-
-          <button
-            onClick={wallet.refresh}
-            style={{
-              background: 'none',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-sm)',
-              color: 'var(--muted)',
-              fontFamily: 'var(--mono)',
-              fontSize: 10,
-              cursor: 'pointer',
-              padding: '3px 8px',
-              transition: 'color 0.15s',
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--muted)')}
-          >
-            ↻ refresh
-          </button>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button
+              onClick={wallet.refresh}
+              style={{
+                background: 'none',
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-sm)',
+                color: 'var(--muted)',
+                fontFamily: 'var(--mono)',
+                fontSize: 10,
+                cursor: 'pointer',
+                padding: '3px 8px',
+                transition: 'color 0.15s',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--muted)')}
+            >
+              ↻ refresh
+            </button>
+            {wallet.publicKey && (
+              <a
+                href={`https://stellar.expert/explorer/testnet/account/${wallet.publicKey}`}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  border: '1px solid var(--border)',
+                  borderRadius: 'var(--radius-sm)',
+                  color: 'var(--muted)',
+                  fontFamily: 'var(--mono)',
+                  fontSize: 10,
+                  textDecoration: 'none',
+                  padding: '3px 8px',
+                }}
+              >
+                explorer ↗
+              </a>
+            )}
+          </div>
         </>
       )}
     </div>
