@@ -24,19 +24,19 @@ export interface SearchResult {
 export interface SearchResponse {
   query: string
   results: SearchResult[]
-  source: 'brave' | 'jina'
+  source: 'brave' | 'jina' | 'duckduckgo'
   timestamp: string
 }
 
 export interface FinanceQuoteResponse {
   symbol: string
-  name: string
-  price: number
-  change: number
-  changePercent: number
-  volume: number
-  marketCap: number
-  currency: string
+  name: string | null
+  price: number | null
+  change: number | null
+  changePercent: number | null
+  volume: number | null
+  marketCap: number | null
+  currency: string | null
   timestamp: string
 }
 
