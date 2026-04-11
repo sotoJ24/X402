@@ -11,8 +11,8 @@
     "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
-    "frontend": "vite --root src/frontend",
-    "frontend:build": "vite build --root src/frontend"
+    "frontend": "vite src/frontend",
+    "frontend:build": "vite build src/frontend"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
