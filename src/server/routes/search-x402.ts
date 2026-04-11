@@ -18,7 +18,7 @@ app.use('/', async (c, next) => {
     network,
     maxAmountRequired: '10000', // 0.01 USDC (6 decimals)
     resource: c.req.url,
-    description: 'Web search — 0.01 USDC per query',
+    description: 'Web search - 0.01 USDC per query',
     mimeType: 'application/json',
     payTo: process.env.STELLAR_RECIPIENT!,
     maxTimeoutSeconds: 300,
@@ -28,7 +28,7 @@ app.use('/', async (c, next) => {
 
   const xPayment = c.req.header('X-PAYMENT')
 
-  // No payment header — return 402 challenge
+  // No payment header - return 402 challenge
   if (!xPayment) {
     return c.json(
       { x402Version: 1, error: 'Payment required', accepts: [paymentRequired] },

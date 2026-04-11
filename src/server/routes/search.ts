@@ -8,7 +8,7 @@ const app = new Hono()
 app.get('/', async (c) => {
   const result = await mppx.charge({
     amount: '0.01',
-    description: 'Web search — 0.01 USDC per query',
+    description: 'Web search - 0.01 USDC per query',
   })(c.req.raw)
 
   if (result.status === 402) return result.challenge

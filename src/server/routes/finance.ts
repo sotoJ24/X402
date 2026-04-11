@@ -8,7 +8,7 @@ const app = new Hono()
 app.get('/quote', async (c) => {
   const result = await mppx.charge({
     amount: '0.001',
-    description: 'Stock quote — 0.001 USDC per request',
+    description: 'Stock quote - 0.001 USDC per request',
   })(c.req.raw)
 
   if (result.status === 402) return result.challenge

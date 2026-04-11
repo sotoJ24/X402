@@ -8,7 +8,7 @@ const app = new Hono()
 app.post('/', async (c) => {
   const result = await mppx.charge({
     amount: '0.005',
-    description: 'AI inference — 0.005 USDC per request',
+    description: 'AI inference - 0.005 USDC per request',
   })(c.req.raw)
 
   if (result.status === 402) return result.challenge

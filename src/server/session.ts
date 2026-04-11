@@ -57,7 +57,7 @@ export function recordUsage(sessionId: string, commitmentAmount: string): Sessio
   if (!record || record.status !== 'open') return null
   record.usedAmount = commitmentAmount
   record.requestCount += 1
-  record.events.push({ type: 'used', timestamp: new Date().toISOString(), detail: `Request #${record.requestCount} — cumulative: ${commitmentAmount} stroops` })
+  record.events.push({ type: 'used', timestamp: new Date().toISOString(), detail: `Request #${record.requestCount} - cumulative: ${commitmentAmount} stroops` })
   return record
 }
 
@@ -74,7 +74,7 @@ export function markSettled(sessionId: string): SessionRecord | null {
   const record = sessions.get(sessionId)
   if (!record) return null
   record.status = 'settled'
-  record.events.push({ type: 'settled', timestamp: new Date().toISOString(), detail: `Settled — claimed ${record.usedAmount} stroops` })
+  record.events.push({ type: 'settled', timestamp: new Date().toISOString(), detail: `Settled - claimed ${record.usedAmount} stroops` })
   return record
 }
 
