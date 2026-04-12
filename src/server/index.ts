@@ -15,7 +15,10 @@ import { network } from './mpp.js'
 
 const app = new Hono()
 
-app.use('*', cors())
+app.use('*', cors({
+  origin: '*',
+  exposeHeaders: ['WWW-Authenticate', 'X-Payment-Receipt'],
+}))
 app.use('*', logger())
 
 // ── MPP Charge routes (1 tx per request) ─────────────────────────────────────
