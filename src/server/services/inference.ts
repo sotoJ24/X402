@@ -7,7 +7,7 @@ export interface InferenceResult {
     completion_tokens: number
     total_tokens: number
   }
-  source: 'gemini' | 'mock'
+  source: 'gemini' | 'openrouter' | 'mock'
   timestamp: string
 }
 
@@ -15,11 +15,22 @@ export async function runInference(
   prompt: string,
   model?: string,
 ): Promise<InferenceResult> {
-  if (process.env.GEMINI_API_KEY) {
-    return runGemini(prompt, model)
+  const geminiKey = process.env.GEMINI_API_KEY?.trim()
+  const openrouterKey = process.env.OPENROUTER_API_KEY?.trim()
+
+  if (geminiKey) {
+    try {
+      return await runGemini(prompt, model)
+    } catch (err) {
+      console.warn('[inference] Gemini failed, falling back:', (err as Error).message)
+    }
   }
-  if (process.env.OPENROUTER_API_KEY) {
-    return runOpenRouter(prompt, model)
+  if (openrouterKey) {
+    try {
+      return await runOpenRouter(prompt, model)
+    } catch (err) {
+      console.warn('[inference] OpenRouter failed, falling back:', (err as Error).message)
+    }
   }
   return runMock(prompt, model)
 }
@@ -30,7 +41,7 @@ async function runGemini(prompt: string, model?: string): Promise<InferenceResul
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.GEMINI_API_KEY}`,
+      Authorization: `Bearer ${process.env.GEMINI_API_KEY!.trim()}`,
     },
     body: JSON.stringify({
       model: selectedModel,
@@ -67,7 +78,7 @@ async function runOpenRouter(prompt: string, model?: string): Promise<InferenceR
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+      Authorization: `Bearer ${process.env.OPENROUTER_API_KEY!.trim()}`,
       'HTTP-Referer': 'https://github.com/OFFER-HUB/X402',
     },
     body: JSON.stringify({
@@ -94,7 +105,7 @@ async function runOpenRouter(prompt: string, model?: string): Promise<InferenceR
       completion_tokens: data.usage?.completion_tokens ?? 0,
       total_tokens: data.usage?.total_tokens ?? 0,
     },
-    source: 'gemini',
+    source: 'openrouter',
     timestamp: new Date().toISOString(),
   }
 }
